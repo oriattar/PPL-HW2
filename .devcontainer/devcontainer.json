@@ -1,0 +1,21 @@
+{
+  "name": "Node.js & TypeScript & LaTeX for PPL Course",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "remoteUser": "root",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "james-yu.latex-workshop",
+        "formulahendry.code-runner",
+        "Compulim.vscode-clock",
+        "Gruntfuggly.todo-tree",
+        "GitHub.copilot",
+        "hediet.debug-visualizer"
+      ]
+    }
+  }
+}
