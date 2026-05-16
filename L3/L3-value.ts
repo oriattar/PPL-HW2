@@ -33,7 +33,6 @@ export type Object = {
     tag: "Object";
     class: Class;
     fields: Value[];
-    Env: Env;
 }
 
 export const makeClass = (fields: VarDecl[], methods: Binding[]): Class => 
@@ -41,9 +40,7 @@ export const makeClass = (fields: VarDecl[], methods: Binding[]): Class =>
 export const makeClassEnv = (fields: VarDecl[], methods: Binding[], env: Env): Class =>
     ({tag: "Class", fields: fields, methods: methods, Env: env});
 export const makeObject = (c: Class, fieldVals: Value[]): Object =>
-    ({tag: "Object", class: c, fields: fieldVals, Env: makeEmptyEnv()});
-export const makeObjectEnv = (c: Class, fieldVals: Value[], env: Env): Object =>
-    ({tag: "Object", class: c, fields: fieldVals, Env: env});
+    ({tag: "Object", class: c, fields: fieldVals});
 export const makeClosure = (params: VarDecl[], body: CExp[]): Closure =>
     ({tag: "Closure", params: params, body: body, env : makeEmptyEnv()});
 export const makeClosureEnv = (params: VarDecl[], body: CExp[], env: Env): Closure =>

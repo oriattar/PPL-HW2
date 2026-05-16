@@ -9,7 +9,7 @@ import { isBoolExp, isCExp, isLitExp, isNumExp, isPrimOp, isStrExp, isVarRef,
          ClassExp,
          isClassExp} from "./L3-ast";
 import { applyEnv, makeEmptyEnv, makeExtEnv, Env } from "./L3-env-env";
-import { isClosure, makeClosureEnv, Closure, Value,Object, makeClass, Class, makeObject, isClass, isObject, isSymbolSExp, makeClosure, makeObjectEnv, makeClassEnv } from "./L3-value";
+import { isClosure, makeClosureEnv, Closure, Value,Object, makeClass, Class, makeObject, isClass, isObject, isSymbolSExp, makeClosure, makeClassEnv } from "./L3-value";
 import { applyPrimitive } from "./evalPrimitive";
 import { allT, first, rest, isEmpty, isNonEmptyList } from "../shared/list";
 import { Result, makeOk, makeFailure, bind, mapResult } from "../shared/result";
@@ -56,9 +56,9 @@ const evalProc = (exp: ProcExp, env: Env): Result<Closure> =>
 const applyProcedure = (proc: Value, args: Value[]): Result<Value> =>
     isPrimOp(proc) ? applyPrimitive(proc, args) :
     isClosure(proc) ? applyClosure(proc, args) :
-    isClass(proc) ? makeOk(makeObjectEnv(proc, args, proc.Env)) :
+    isClass(proc) ? makeOk(makeObject(proc, args)) :
     isObject(proc) ? args.length === 0 ? makeFailure(`Missing method name in application of object`) :
-    bind(getClosure(proc,(args[0]),proc.Env), (closure: Closure) =>
+    bind(getClosure(proc,(args[0]),proc.class.Env), (closure: Closure) =>
     applyClosure(closure,proc.fields.concat(args.slice(1)))) :
 
     makeFailure(`Bad procedure ${format(proc)}`);
