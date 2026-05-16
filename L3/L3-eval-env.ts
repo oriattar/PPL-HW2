@@ -5,14 +5,18 @@ import { map } from "ramda";
 import { isBoolExp, isCExp, isLitExp, isNumExp, isPrimOp, isStrExp, isVarRef,
          isAppExp, isDefineExp, isIfExp, isLetExp, isProcExp,
          Binding, VarDecl, CExp, Exp, IfExp, LetExp, ProcExp, Program,
-         parseL3Exp,  DefineExp} from "./L3-ast";
+         parseL3Exp,  DefineExp,
+         ClassExp,
+         isClassExp} from "./L3-ast";
 import { applyEnv, makeEmptyEnv, makeExtEnv, Env } from "./L3-env-env";
-import { isClosure, makeClosureEnv, Closure, Value } from "./L3-value";
+import { isClosure, makeClosureEnv, Closure, Value,Object, makeClass, Class, makeObject, isClass, isObject, isSymbolSExp, makeClosure, makeObjectEnv, makeClassEnv } from "./L3-value";
 import { applyPrimitive } from "./evalPrimitive";
 import { allT, first, rest, isEmpty, isNonEmptyList } from "../shared/list";
 import { Result, makeOk, makeFailure, bind, mapResult } from "../shared/result";
 import { parse as p } from "../shared/parser";
 import { format } from "../shared/format";
+import { get } from "node:http";
+import { env } from "node:process";
 
 // ========================================================
 // Eval functions
@@ -24,6 +28,7 @@ const applicativeEval = (exp: CExp, env: Env): Result<Value> =>
     isPrimOp(exp) ? makeOk(exp) :
     isVarRef(exp) ? applyEnv(env, exp.var) :
     isLitExp(exp) ? makeOk(exp.val) :
+    isClassExp(exp) ? evalClassExp(exp, env) :
     isIfExp(exp) ? evalIf(exp, env) :
     isProcExp(exp) ? evalProc(exp, env) :
     isLetExp(exp) ? evalLet(exp, env) :
@@ -51,11 +56,31 @@ const evalProc = (exp: ProcExp, env: Env): Result<Closure> =>
 const applyProcedure = (proc: Value, args: Value[]): Result<Value> =>
     isPrimOp(proc) ? applyPrimitive(proc, args) :
     isClosure(proc) ? applyClosure(proc, args) :
+    isClass(proc) ? makeOk(makeObjectEnv(proc, args, proc.Env)) :
+    isObject(proc) ? args.length === 0 ? makeFailure(`Missing method name in application of object`) :
+    bind(getClosure(proc,(args[0]),proc.Env), (closure: Closure) =>
+    applyClosure(closure,proc.fields.concat(args.slice(1)))) :
+
     makeFailure(`Bad procedure ${format(proc)}`);
 
 const applyClosure = (proc: Closure, args: Value[]): Result<Value> => {
     const vars = map((v: VarDecl) => v.var, proc.params);
     return evalSequence(proc.body, makeExtEnv(vars, args, proc.env));
+}
+
+const getbody = (bind: Binding): CExp[] =>
+    isProcExp(bind.val) ? bind.val.body :
+    [bind.val]; // never
+
+const getArguments = (bind: Binding): VarDecl[] =>
+    isProcExp(bind.val) ? bind.val.args :
+    []; 
+
+const getClosure = (o : Object, method:Value, env: Env): Result<Closure> =>{
+    const name = isSymbolSExp(method) ? method.val : "";
+    const methodBind = o.class.methods.filter((b: Binding) => b.var.var === name);
+    return methodBind.length === 0 ? makeFailure(`Unrecognized method: ${name}`) :
+    makeOk(makeClosureEnv(o.class.fields.concat(getArguments(methodBind[0])), getbody(methodBind[0]), env));
 }
 
 // Evaluate a sequence of expressions (in a program)
@@ -95,3 +120,6 @@ const evalLet = (exp: LetExp, env: Env): Result<Value> => {
     return bind(vals, (vals: Value[]) => 
         evalSequence(exp.body, makeExtEnv(vars, vals, env)));
 }
+
+const evalClassExp = (exp: ClassExp, env: Env): Result<Class> =>
+    makeOk(makeClassEnv(exp.fields, exp.methods, env));

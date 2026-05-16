@@ -237,14 +237,14 @@ const parseClassExp =(params : Sexp[]):Result<ClassExp>=>{
     const fields = params[0];
     if(!(isArray(fields) && allT(isString,fields)))
     {
-        return makeFailure("Bad fields was sent to class.");
+        return makeFailure('Bad fields was sent to class.');
     }
     
     const methods = params[1];
 
     if(!isGoodBindings(methods))
     {
-        return makeFailure("Bad bindings was sent to class.");
+        return makeFailure('Bad bindings was sent to class.');
     }
 
     const vars = map(b => b[0], methods);
