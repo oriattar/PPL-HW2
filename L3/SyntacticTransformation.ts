@@ -22,7 +22,7 @@ export const class2proc = (exp: ClassExp): ProcExp =>{
     return makeProcExp(exp.fields,[makeProcExp([makeVarDecl("msg")],[ifEx])]);
 }
 
-export const getProcBody =(bind:Binding):CExp=>
+const getProcBody =(bind:Binding):CExp=>
     isProcExp(bind.val) ? bind.val.body[0] :
     bind.val;
 /*

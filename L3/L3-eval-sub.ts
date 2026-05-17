@@ -133,4 +133,3 @@ export const evalParse = (s: string): Result<Value> =>
 
 const evalClassExp = (exp: ClassExp, env: Env): Result<Class> =>
     makeOk(makeClass(exp.fields, exp.methods));
-
